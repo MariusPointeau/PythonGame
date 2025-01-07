@@ -1,3 +1,5 @@
+import random
+
 class Tile:
 
     def __init__(self):
@@ -31,3 +33,6 @@ class Map:
             if(i % 5 == 0 and not i == 0):
                 textToPrint += "\n" + "-------------------------" + "\n"
         return textToPrint
+
+    def GetRandomTile(self):
+        return random.choice(self.tiles[1:])

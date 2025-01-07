@@ -1,18 +1,32 @@
 import random
+from enum import Enum
+
+class Type(Enum):
+    Fire = "1"
+    Water = "2"
+    Grass = "3"
+    Flying = "4"
+    Dragon = "5"
+    Psy = "6"
+    Electric = "7"
+    Rock = "8"
+    Normal = "9"
+    Buff = "10"
 
 class Attack:
 
-    def __init__(self, __name,__damages, __usage_limit, __protect = False):
+    def __init__(self, __name,__damages, __usage_limit, __type, __protect = False):
         self.damages = __damages
         self.usage_limit = __usage_limit
         self.usage = 0
         self.name = __name
+        self.type = __type
         self.protect = __protect
 
 class Pokemon:
     counter = 0
     
-    def __init__(self, __name, __life_points):
+    def __init__(self, __name, __life_points, __type):
         self.name = __name
         self.experience = 0
         self.level = 1
@@ -21,6 +35,7 @@ class Pokemon:
         self.dead = False
         self.protected = False
         self.attacks = []
+        self.type = __type
         Pokemon.counter += 1
         
     def __str__(self):
@@ -52,7 +67,7 @@ class Pokemon:
             if not canAttack:
                 pokemon2.life_points -= self.attacks[attack_nb].damages
                 self.life_points -= self.attacks[attack_nb].damages
-                print(self.name + " used furie and dealt " + str(self.attacks[attack_nb].damages))
+                print(self.name + " used struggle and dealt " + str(self.attacks[attack_nb].damages))
             else:
                 while not has_attack:
                     if self.attacks[attack_nb].usage < self.attacks[attack_nb].usage_limit:
