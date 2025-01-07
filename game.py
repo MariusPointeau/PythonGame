@@ -1,5 +1,6 @@
 from dresseur import *
 from map import *
+from TerminalColor import color
 
 class Game:
     map = Map()
@@ -30,6 +31,8 @@ class Game:
             self.PlayerMoved(-1)
         elif(direction == "d" or direction == "D"):
             self.PlayerMoved(1)
+        elif(direction == "quit"):
+            close = True
     
     def PlayerMoved(self, howMuch):
         self.map.tiles[self.playerPos].occupied = False

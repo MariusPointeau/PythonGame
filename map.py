@@ -1,4 +1,5 @@
 import random
+from TerminalColor import color
 
 class Tile:
 
@@ -27,7 +28,7 @@ class Map:
             self.tiles.append(tile)
     
     def __str__(self):
-        textToPrint = "-------------------------" + "\n"
+        textToPrint = color.GREEN.value + "-------------------------" + "\n"
         for i in range(1,26):
             textToPrint += self.tiles[i].tileForm()
             if(i % 5 == 0 and not i == 0):

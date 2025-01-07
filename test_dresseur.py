@@ -114,8 +114,6 @@ alak.add_attack(Protection)
 
 pokemons = [pika, ronfl, menta, flori, dracau, tort, rouc, koko, arca, levia, rhino, alak]
 
-print(dracau.type)
-
 map = Map()
 
 game = Game(pokemons, map)
@@ -124,3 +122,5 @@ game.SpawmColletible()
 
 while not game.close:
     game.Update()
+
+print(color.END)
