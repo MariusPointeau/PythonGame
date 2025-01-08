@@ -2,10 +2,9 @@ from pokemon import *
 
 class Dresseur:
 
-    def __init__(self, __name, __experience, __level):
+    def __init__(self, __name):
         self.name = __name
-        self.experience = __experience
-        self.level = __level
+        self.money = 0
         self.defeated = False
         self.pokemons = []
     
@@ -50,29 +49,6 @@ class Dresseur:
             if(pokemon.life_points > chosen_pokemon.life_points):
                 chosen_pokemon = pokemon
         return chosen_pokemon
-
-    def Defi_Aleatoire(self, dresseur2):
-        self.taverne()
-        dresseur2.taverne()
-
-        red_pokemon = self.RandomPokemon()
-        blue_pokemon = dresseur2.RandomPokemon()
-
-        while red_pokemon.dead == False and blue_pokemon.dead == False:
-            if random.randint(0,1) == 0:
-                red_pokemon.attack(blue_pokemon)
-                blue_pokemon.attack(red_pokemon)
-            else:
-                blue_pokemon.attack(red_pokemon)
-                red_pokemon.attack(blue_pokemon)
-    
-        if red_pokemon.life_points <= 0:
-            dresseur2.experience += 1
-            blue_pokemon.level_up(5)
-        
-        elif blue_pokemon.life_points <= 0:
-            self.experience += 1
-            red_pokemon.level_up(5)
         
     def Arene1(self, dresseur2):
         counter = 0
@@ -92,27 +68,6 @@ class Dresseur:
             print(self.name + " has won the arena")
         else:
             print(dresseur2.name + " has won the arena")
-
-    def Defi_Deterministe(self, dresseur2):
-
-        red_pokemon = self.HigherLifePokemon()
-        blue_pokemon = dresseur2.HigherLifePokemon()
-
-        while red_pokemon.dead == False and blue_pokemon.dead == False:
-            if random.randint(0,1) == 0:
-                red_pokemon.attack(blue_pokemon)
-                blue_pokemon.attack(red_pokemon)
-            else:
-                blue_pokemon.attack(red_pokemon)
-                red_pokemon.attack(blue_pokemon)
-    
-        if red_pokemon.life_points <= 0:
-            dresseur2.experience += 1
-            blue_pokemon.level_up(5)
-        
-        elif blue_pokemon.life_points <= 0:
-            self.experience += 1
-            red_pokemon.level_up(5)
     
     def Arena2(self, dresseur2):
         counter = 0

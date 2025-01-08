@@ -53,10 +53,9 @@ class Pokemon:
             if attack.usage < 0:
                 attack.usage = 0
     
-    def attack(self, pokemon2):
+    def attack(self, attack: Attack, pokemon2):
+        attack_message = ""
         if self.attacks and pokemon2.life_points > 0 and not self.dead:
-            has_attack = False
-            attack_nb = random.randint(0, len(self.attacks)-1)
             canAttack = True
             for attack in self.attacks:
                 if(attack.usage < attack.usage_limit):
@@ -65,27 +64,23 @@ class Pokemon:
                 else:
                     canAttack = False
             if not canAttack:
-                pokemon2.life_points -= self.attacks[attack_nb].damages
-                self.life_points -= self.attacks[attack_nb].damages
-                print(self.name + " used struggle and dealt " + str(self.attacks[attack_nb].damages))
+                pokemon2.life_points -= attack.damages
+                self.life_points -= attack.damages
+                attack_message += self.name + " used struggle and dealt " + str(attack.damages)
             else:
-                while not has_attack:
-                    if self.attacks[attack_nb].usage < self.attacks[attack_nb].usage_limit:
-                        if self.attacks[attack_nb].damages > 0:
-                            if pokemon2.protected:
-                                print(pokemon2.name + " was protected")
-                                pokemon2.protected = False
-                            else:
-                                pokemon2.life_points -= self.attacks[attack_nb].damages
-                                print(self.name + " used " + self.attacks[attack_nb].name + " and dealt " + str(self.attacks[attack_nb].damages))
-                                pokemon2.checkHP()
-                        else:
-                            self.protected = True
-                            print(self.name + " used " + self.attacks[attack_nb].name)
-                        self.attacks[attack_nb].usage += 1
-                        has_attack = True
+                if attack.damages > 0:
+                    if pokemon2.protected:
+                        attack_message += pokemon2.name + " was protected"
+                        pokemon2.protected = False
                     else:
-                        attack_nb = random.randint(0, len(self.attacks)-1)
+                        pokemon2.life_points -= attack.damages
+                        attack_message += self.name + " used " + attack.name + " and dealt " + str(attack.damages)
+                        attack_message += pokemon2.checkHP()
+                else:
+                    self.protected = True
+                    attack_message += self.name + " used " + attack.name
+                attack.usage += 1
+        return attack_message
 
     def level_up(self, __experience):
         self.experience += __experience
@@ -98,4 +93,6 @@ class Pokemon:
     def checkHP(self):
         if self.life_points <= 0:
             self.dead = True
-            print(self.name + " is defeated")
+            return self.name + " is defeated"
+        else:
+            return ""

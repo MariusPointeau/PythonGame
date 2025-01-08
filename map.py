@@ -28,7 +28,7 @@ class Map:
             self.tiles.append(tile)
     
     def __str__(self):
-        textToPrint = color.GREEN.value + "-------------------------" + "\n"
+        textToPrint = "-------------------------" + "\n"
         for i in range(1,26):
             textToPrint += self.tiles[i].tileForm()
             if(i % 5 == 0 and not i == 0):
