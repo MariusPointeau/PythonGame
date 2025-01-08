@@ -57,12 +57,10 @@ class Pokemon:
         attack_message = ""
         if self.attacks and pokemon2.life_points > 0 and not self.dead:
             canAttack = True
-            for attack in self.attacks:
-                if(attack.usage < attack.usage_limit):
-                    canAttack = True
-                    break
-                else:
-                    canAttack = False
+            if(attack.usage < attack.usage_limit):
+                canAttack = True
+            else:
+                canAttack = False
             if not canAttack:
                 pokemon2.life_points -= attack.damages
                 self.life_points -= attack.damages
@@ -93,6 +91,6 @@ class Pokemon:
     def checkHP(self):
         if self.life_points <= 0:
             self.dead = True
-            return self.name + " is defeated"
+            return "\n" + self.name + " is defeated"
         else:
             return ""

@@ -2,6 +2,7 @@ from dresseur import *
 from map import *
 from Engine import Renderer
 from TerminalColor import color
+from Math import *
 import time
 
 class Game:
@@ -56,6 +57,7 @@ class Game:
 
         dresseur2 = Dresseur("A Wild Pokemon")
         dresseur2.add_pokemon(random.choice(self.pokemons))
+        dresseur2.money = random.randint(50, 250)
         dresseur2.taverne()
 
         text_to_print = dresseur2.name + " appear\n\n"
@@ -90,22 +92,21 @@ class Game:
 
             if(move == 1):
                 self.renderer.Draw(self.DrawAttackMoves(red_pokemon))
+                attack_selected = input("Attack to use : ")
+                attack_selected = Check_String_Input(attack_selected)
+                attackText = red_pokemon.attack(red_pokemon.attacks[attack_selected-1],blue_pokemon)
+                self.renderer.Draw(attackText)
 
-
-    
-        if red_pokemon.life_points <= 0:
-            dresseur2.experience += 1
-            blue_pokemon.level_up(5)
-        
-        elif blue_pokemon.life_points <= 0:
-            self.experience += 1
-            red_pokemon.level_up(5)
+        if blue_pokemon.life_points <= 0:
+            self.player.money += dresseur2.money
+            red_pokemon.level_up(blue_pokemon.level + 5)
     
     def DrawAttackMoves(self, red_pokemon):
         text_to_print = "Attack\n\n"
         i = 1
         for attack in red_pokemon.attacks:
             text_to_print += str(i) + ") " + attack.name + "\t damage : " + str(attack.damages) + "\t type : " + str(attack.type) + "\t usage : " + str(attack.usage) + "/" + str(attack.usage_limit) + "\n\n"
+            i += 1
         return text_to_print
 
     

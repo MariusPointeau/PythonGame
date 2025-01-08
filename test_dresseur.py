@@ -122,5 +122,3 @@ game.SpawmColletible()
 
 while not game.close:
     game.Update()
-
-print(color.END)
