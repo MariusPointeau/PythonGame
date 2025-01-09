@@ -12,6 +12,7 @@ class Type(Enum):
     Rock = "8"
     Normal = "9"
     Buff = "10"
+    Null = "11"
 
 class Attack:
 
@@ -22,6 +23,10 @@ class Attack:
         self.name = __name
         self.type = __type
         self.protect = __protect
+    
+    def copy(self):
+        attack_copy = Attack(self.name,self.damages,self.usage_limit,self.type,self.protect)
+        return attack_copy
 
 class Pokemon:
     counter = 0
@@ -65,6 +70,7 @@ class Pokemon:
                 pokemon2.life_points -= attack.damages
                 self.life_points -= attack.damages
                 attack_message += self.name + " used struggle and dealt " + str(attack.damages)
+                attack_message += self.checkHP()
             else:
                 if attack.damages > 0:
                     if pokemon2.protected:
@@ -87,6 +93,9 @@ class Pokemon:
             self.level += 1
             self.life_points += self.level
             self.maxlife_points += self.level
+
+            return self.name + " leveled up\n" + "\n he's now level " + self.level
+        return ""
     
     def checkHP(self):
         if self.life_points <= 0:
@@ -94,3 +103,8 @@ class Pokemon:
             return "\n\n" + self.name + " is defeated"
         else:
             return ""
+        
+    def copy(self):
+        pokemon_copy = Pokemon(self.name, self.life_points, self.type)
+        pokemon_copy.attacks = self.attacks
+        return pokemon_copy

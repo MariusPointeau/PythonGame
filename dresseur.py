@@ -25,10 +25,6 @@ class Dresseur:
                 attack.usage = 0
     
     def Update(self):
-        if self.experience >= 10:
-            self.level += 1
-            self.experience = 0
-        
         if(self.pokemons[0].dead):
             lost = False
             for pokemon in self.pokemons:
