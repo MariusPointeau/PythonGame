@@ -54,7 +54,7 @@ class Pokemon:
                 attack.usage = 0
     
     def attack(self, attack: Attack, pokemon2):
-        attack_message = ""
+        attack_message = "\n"
         if self.attacks and pokemon2.life_points > 0 and not self.dead:
             canAttack = True
             if(attack.usage < attack.usage_limit):
@@ -78,7 +78,7 @@ class Pokemon:
                     self.protected = True
                     attack_message += self.name + " used " + attack.name
                 attack.usage += 1
-        return attack_message
+        return attack_message + "\n"
 
     def level_up(self, __experience):
         self.experience += __experience
@@ -91,6 +91,6 @@ class Pokemon:
     def checkHP(self):
         if self.life_points <= 0:
             self.dead = True
-            return "\n" + self.name + " is defeated"
+            return "\n\n" + self.name + " is defeated"
         else:
             return ""

@@ -50,7 +50,7 @@ class Game:
     def Update(self):
         self.Defi_Aleatoire()
         self.close = True
-        print("\033c")
+        '''print("\033c")'''
 
 
     def Defi_Aleatoire(self):
@@ -82,8 +82,8 @@ class Game:
             
             text_to_print += "Moves :\n\n"
             text_to_print += "1) Attack\n"
-            text_to_print += "2) Use potion : +25 hp\n"
-            text_to_print += "3) Throw pokeball\n"
+            text_to_print += "2) Objects\n"
+            text_to_print += "3) Pokemons\n"
             text_to_print += "4) Run\n\n"
 
             text_to_print += "enter the number for your move\n\n"
@@ -96,6 +96,12 @@ class Game:
                 attack_selected = Check_String_Input(attack_selected)
                 attackText = red_pokemon.attack(red_pokemon.attacks[attack_selected-1],blue_pokemon)
                 self.renderer.Draw(attackText)
+
+                attackText = blue_pokemon.attack(random.choice(blue_pokemon.attacks), red_pokemon)
+                self.renderer.Draw(attackText)
+            if(move == 2):
+                object_to_use = "\n"
+                self.renderer.Draw(object_to_use)
 
         if blue_pokemon.life_points <= 0:
             self.player.money += dresseur2.money

@@ -7,6 +7,8 @@ class Dresseur:
         self.money = 0
         self.defeated = False
         self.pokemons = []
+        self.potions = 0
+        self.pokeball = 0
     
     def __str__(self):
         return self.name + " has " + str(self.experience) + " xp points and is level " + str(self.level)

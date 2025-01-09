@@ -122,3 +122,5 @@ game.SpawmColletible()
 
 while not game.close:
     game.Update()
+
+input("")
