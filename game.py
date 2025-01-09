@@ -3,15 +3,17 @@ from map import *
 from Engine import Renderer
 from TerminalColor import color
 from Math import *
+from Dialogue import *
 import time
 import os
 
 potion_value = 25
 
-class Fight(Enum):
+class Action(Enum):
     Null = 0
     Wild = 1
     Trainer = 2
+    Talk = 3
 
 class Cry(Enum):
     Growl = " growl\n"
@@ -56,7 +58,7 @@ class Game:
         self.player.add_pokemon(self.AddRandomPokemons())
 
         self.player.pokeball = 5
-        self.fight_type = Fight.Null
+        self.action_type = Action.Talk
 
         self.red_pokemon = Pokemon("None", 0, Type.Null)
         self.blue_pokemon = Pokemon("None", 0, Type.Null)
@@ -95,13 +97,26 @@ class Game:
 
         proba_wild_attack = random.randint(0,1)
         if(proba_wild_attack == 0):
-            self.fight_type = Fight.Wild
+            self.action_type = Action.Wild
 
     def Update(self):
 
-        if(self.fight_type != Fight.Null):
+        if(self.action_type != Action.Null):
+            if(self.action_type == Action.Talk):
+                dialogue = Dialogue("Trainer")
+                response = dialogue.Conversation()
+                if(response):
+                    self.action_type = Action.Trainer
+                else:
+                    self.action_type = Action.Null
+                time.sleep(2.0)
+            
             self.clear()
-            self.Defi_Aleatoire()
+            if(self.action_type == Action.Wild):
+                self.Defi_Aleatoire()
+            elif(self.action_type == Action.Trainer):
+                '''trainer duel'''
+                pass
         else:
             self.clear()
             self.renderer.Draw(self.DrawMap())
@@ -112,7 +127,6 @@ class Game:
         return self.pokemons[random_pokemon].copy()
 
     def Defi_Aleatoire(self):
-
         dresseur2 = Dresseur("A Wild Pokemon")
         dresseur2.add_pokemon(self.AddRandomPokemons())
         dresseur2.money = random.randint(50, 250)
@@ -140,10 +154,10 @@ class Game:
         self.red_pokemon = self.player.pokemons[pokemon_index]
         self.blue_pokemon = dresseur2.pokemons[0]
 
-        while self.red_pokemon.dead == False and self.blue_pokemon.dead == False and self.fight_type == Fight.Wild:
+        while self.red_pokemon.dead == False and self.blue_pokemon.dead == False and self.action_type == Action.Wild:
             self.CombatPhase()
 
-        if self.blue_pokemon.life_points <= 0 and self.fight_type == Fight.Wild:
+        if self.blue_pokemon.life_points <= 0 and self.action_type == Action.Wild:
             self.player.money += dresseur2.money
             self.red_pokemon.level_up(self.blue_pokemon.level + 5)
             self.player.Update()
@@ -193,7 +207,7 @@ class Game:
             else:
                 self.enemy_turn = True
 
-        if(self.fight_type != Fight.Null and self.enemy_turn):
+        if(self.action_type != Action.Null and self.enemy_turn):
             attackText = self.blue_pokemon.attack(random.choice(self.blue_pokemon.attacks), self.red_pokemon)
             self.renderer.Draw(attackText)
             self.enemy_turn = False
@@ -257,7 +271,7 @@ class Game:
 
     def LaunchPokeball(self):
         text_to_print = "\n"
-        if(self.fight_type == Fight.Wild):
+        if(self.action_type == Action.Wild):
             catch = self.TryToCatch(75, "viewp")
             time.sleep(1.0)
             if(catch):
@@ -279,7 +293,7 @@ class Game:
             else:
                 text_to_print += PokemonInPokeballFeedback.Try1.value
                         
-        elif(self.fight_type == Fight.Trainer):
+        elif(self.action_type == Action.Trainer):
             text_to_print += Error.PokeballOnTrainer.value
 
         self.renderer.Draw(text_to_print)
@@ -292,7 +306,7 @@ class Game:
 
         self.red_pokemon = Pokemon("None", 0, Type.Null)
         self.blue_pokemon = Pokemon("None", 0, Type.Null)
-        self.fight_type = Fight.Null
+        self.action_type = Action.Null
         self.enemy_turn = False
 
     def TryToCatch(self, proba, message):

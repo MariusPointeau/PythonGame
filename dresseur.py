@@ -9,7 +9,7 @@ class Dresseur:
         self.pokemons = []
         self.potions = 0
         self.pokeball = 0
-    
+
     def __str__(self):
         return self.name + " has " + str(self.experience) + " xp points and is level " + str(self.level)
 
@@ -23,7 +23,7 @@ class Dresseur:
             pokemon.dead = False
             for attack in pokemon.attacks:
                 attack.usage = 0
-    
+
     def Update(self):
         if(self.pokemons[0].dead):
             lost = False
@@ -37,7 +37,7 @@ class Dresseur:
             
             if(lost):
                 self.defeated = True
-    
+
     def RandomPokemon(self) -> Pokemon:
         return self.pokemons[random.randint(0, len(self.pokemons)-1)]
 
@@ -47,7 +47,7 @@ class Dresseur:
             if(pokemon.life_points > chosen_pokemon.life_points):
                 chosen_pokemon = pokemon
         return chosen_pokemon
-        
+
     def Arene1(self, dresseur2):
         counter = 0
         while counter < 100:
