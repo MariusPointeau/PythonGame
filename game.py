@@ -172,7 +172,7 @@ class Game:
 
         if(dresseur2.defeated and self.action_type != Action.Null):
             self.player.money += dresseur2.money
-            self.Run("You won against " + dresseur2.name + " and gained " + str(dresseur2.money))
+            self.Run("You won against " + dresseur2.name + " and gained " + str(dresseur2.money) + " gold\n")
             time.sleep(1.0)
         
         if self.player.defeated and self.action_type != Action.Null:
@@ -221,7 +221,7 @@ class Game:
 
         if(dresseur2.defeated and self.action_type != Action.Null):
             self.player.money += dresseur2.money
-            self.Run("You won against " + dresseur2.name + " and gained " + str(dresseur2.money))
+            self.Run("\nYou won against " + dresseur2.name + " and gained " + str(dresseur2.money) + " gold\n")
             time.sleep(1.0)
         
         if self.player.defeated and self.action_type != Action.Null:
@@ -311,7 +311,7 @@ class Game:
         elif(self.action_type == Action.Trainer):
             attack_to_use = self.blue_pokemon.GetRandomAttack()
             for attack in self.blue_pokemon.attacks:
-                if(Type.Adventage(attack.type, self.red_pokemon.type) and attack.damages >= attack_to_use.damages and attack.usage < attack.usage_limit):
+                if(attack.damages * Type.Adventage(attack.type, self.red_pokemon.type) >= attack_to_use.damages * Type.Adventage(attack_to_use.type, self.red_pokemon.type) and attack.usage < attack.usage_limit):
                     attack_to_use = attack
                 if(attack.damages * Type.Adventage(attack.type, self.red_pokemon.type) >= self.red_pokemon.life_points):
                     attack_to_use = attack
