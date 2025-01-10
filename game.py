@@ -28,6 +28,7 @@ class Error(Enum):
     PokeballOnTrainer = "\nYou can't take a trainer's pokemon\n"
     SelectedPokemonDead = "\nYou have to chose another pokemon\n"
     TryToEscapeTrainer = "\nYou try to flee ?\nYou coward\n"
+    TrainerHealedPokemon = " used a potion for "
 
 class TrainerName(Enum):
     Scout = "Scout Philibert"
@@ -148,6 +149,7 @@ class Game:
         dresseur2 = Dresseur("A Wild Pokemon")
         dresseur2.add_pokemon(self.AddRandomPokemons())
         dresseur2.money = random.randint(50, 250)
+        dresseur2.potions = random.randint(0,2)
         dresseur2.taverne()
 
         text_to_print = "\n" + dresseur2.name + " appear\n\n"
@@ -279,7 +281,16 @@ class Game:
             return
 
         if(self.action_type != Action.Null and self.enemy_turn):
-            attackText = self.blue_pokemon.attack(random.choice(self.blue_pokemon.attacks), self.red_pokemon)
+            attackText = ""
+            if(self.action_type == Action.Wild):
+                attackText = self.blue_pokemon.attack(self.EnemyChooseAttack(), self.red_pokemon)
+            elif(self.action_type == Action.Trainer):
+                if(self.blue_pokemon.life_points <= int(self.blue_pokemon.maxlife_points/2) and dresseur2.potions > 0):
+                    self.blue_pokemon.heal(potion_value)
+                    dresseur2.potions -= 1
+                    attackText = "\n" + dresseur2.name + Error.TrainerHealedPokemon.value + self.blue_pokemon.name + "\n"
+                else:
+                    attackText = self.blue_pokemon.attack(self.EnemyChooseAttack(), self.red_pokemon)
             Renderer.Draw(attackText)
             self.enemy_turn = False
         
@@ -293,6 +304,20 @@ class Game:
             self.player.Update()
             if(not self.player.defeated):
                 self.red_pokemon = self.PokemonMenu()
+    
+    def EnemyChooseAttack(self) -> Attack:
+        if(self.action_type == Action.Wild):
+            return self.blue_pokemon.GetRandomAttack()
+        elif(self.action_type == Action.Trainer):
+            attack_to_use = self.blue_pokemon.GetRandomAttack()
+            for attack in self.blue_pokemon.attacks:
+                if(Type.Adventage(attack.type, self.red_pokemon.type) and attack.damages >= attack_to_use.damages and attack.usage < attack.usage_limit):
+                    attack_to_use = attack
+                if(attack.damages * Type.Adventage(attack.type, self.red_pokemon.type) >= self.red_pokemon.life_points):
+                    attack_to_use = attack
+                    break
+            return attack_to_use
+
     
     def AttackMenu(self):
         Renderer.Draw(OverallMenu.MenuQuit.value)

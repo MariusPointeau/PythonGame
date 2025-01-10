@@ -149,3 +149,12 @@ class Pokemon:
         pokemon_copy = Pokemon(self.name, self.life_points, self.type)
         pokemon_copy.attacks = self.attacks
         return pokemon_copy
+    
+    def GetRandomAttack(self):
+        attack : Attack = random.choice(self.attacks)
+        if(attack.usage < attack.usage_limit):
+            for list_attack in self.attacks:
+                if(list_attack.usage < list_attack.usage_limit):
+                    attack = list_attack
+                    break
+        return attack
