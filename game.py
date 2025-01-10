@@ -7,7 +7,7 @@ from Dialogue import *
 import time
 import os
 
-potion_value = 25
+potion_value = 120
 
 class Action(Enum):
     Null = 0
@@ -25,7 +25,16 @@ class Error(Enum):
     NoPokeball = "\nThere is not enought pokeball to use\n"
     NotEnoughtPokemon = "\nyou don't have that pokemon\n"
     AlreadyUsePokemon = "\nthis pokemon is already in battle\n"
-    PokeballOnTrainer = "You can't take a trainer's pokemon\n"
+    PokeballOnTrainer = "\nYou can't take a trainer's pokemon\n"
+    SelectedPokemonDead = "\nYou have to chose another pokemon\n"
+    TryToEscapeTrainer = "\nYou try to flee ?\nYou coward\n"
+
+class TrainerName(Enum):
+    Scout = "Scout Philibert"
+    Gamin = "Gamin Matheo"
+    Pecheur = "Pecheur Marco"
+    Nageuse = "Nageuse Sophie"
+    Bob = "Bob"
 
 class OverallMenu(Enum):
     MenuQuit = "\n0) quit"
@@ -36,10 +45,10 @@ class ObjectMenu(Enum):
     Pokeballs = "\n2) pokeballs : "
 
 class PokemonInPokeballFeedback(Enum):
-    Try1 = "Oh no, he escaped\n"
-    Try2 = "Oh no, close\n"
-    Try3 = "Oh no.\n Come on one more pokeball and you've got it\n"
-    GotIt = "Nice you got it\n"
+    Try1 = "\nOh no, he escaped\n"
+    Try2 = "\nOh no, close\n"
+    Try3 = "\nOh no !\nCome on one more pokeball and you've got it\n"
+    GotIt = "\nNice you got it\n"
 
 
 class Game:
@@ -48,7 +57,6 @@ class Game:
         self.clear = lambda: os.system('cls')
 
         self.playerPos = 13
-        self.renderer = Renderer()
         self.player = Dresseur("Player 1")
 
         self.pokemons = __pokemons
@@ -58,7 +66,7 @@ class Game:
         self.player.add_pokemon(self.AddRandomPokemons())
 
         self.player.pokeball = 5
-        self.action_type = Action.Talk
+        self.action_type = Action.Null
 
         self.red_pokemon = Pokemon("None", 0, Type.Null)
         self.blue_pokemon = Pokemon("None", 0, Type.Null)
@@ -75,6 +83,12 @@ class Game:
         tile.occupied = True
         tile.potion = True
 
+    def SpawnTrainer(self, nb_trainer):
+        for i in range(0, nb_trainer):
+            tile = self.map.GetRandomTile()
+            tile.occupied = True
+            tile.trainer = True
+
     def GetKey(self):
         direction = input("Direction (WASD) = ")
         if(direction == "w" or direction == "W" or direction == "z" or direction == "Z"):
@@ -89,21 +103,28 @@ class Game:
             self.close = True
     
     def PlayerMoved(self, howMuch):
+        tile = self.map.tiles[self.playerPos + howMuch]
+        if(tile.occupied):
+            if(tile.potion):
+                self.player.potions += 1
+            elif(tile.trainer):
+                self.action_type = Action.Talk
+                return
         self.map.tiles[self.playerPos].occupied = False
         self.map.tiles[self.playerPos].player = False
         self.playerPos += howMuch
         self.map.tiles[self.playerPos].occupied = True
         self.map.tiles[self.playerPos].player = True
 
-        proba_wild_attack = random.randint(0,1)
+        proba_wild_attack = random.randint(0,2)
         if(proba_wild_attack == 0):
             self.action_type = Action.Wild
 
     def Update(self):
-
+        self.clear()
         if(self.action_type != Action.Null):
             if(self.action_type == Action.Talk):
-                dialogue = Dialogue("Trainer")
+                dialogue = Dialogue(random.choice(list(TrainerName)).value, random.randint(1,3))
                 response = dialogue.Conversation()
                 if(response):
                     self.action_type = Action.Trainer
@@ -111,15 +132,12 @@ class Game:
                     self.action_type = Action.Null
                 time.sleep(2.0)
             
-            self.clear()
             if(self.action_type == Action.Wild):
                 self.Defi_Aleatoire()
             elif(self.action_type == Action.Trainer):
-                '''trainer duel'''
-                pass
+                self.Challenge_Trainer(dialogue.interaction_name, dialogue.nb_pokemon)
         else:
-            self.clear()
-            self.renderer.Draw(self.DrawMap())
+            Renderer.Draw(self.DrawMap())
             self.GetKey()
 
     def AddRandomPokemons(self) -> Pokemon:
@@ -133,17 +151,54 @@ class Game:
         dresseur2.taverne()
 
         text_to_print = "\n" + dresseur2.name + " appear\n\n"
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         time.sleep(1.0)
 
         text_to_print = dresseur2.pokemons[0].name + random.choice(list(Cry)).value
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         time.sleep(1.0)
 
         text_to_print = self.player.pokemons[0].name + " GO !\n\n"
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         time.sleep(1.0)
+
+        self.red_pokemon = self.player.AutoSelectAlivePokemon()
+        self.blue_pokemon = dresseur2.pokemons[0]
+
+        while self.player.defeated == False and dresseur2.defeated == False and self.action_type == Action.Wild:
+            self.CombatPhase(dresseur2)
+
+        if(dresseur2.defeated and self.action_type != Action.Null):
+            self.player.money += dresseur2.money
+            self.Run("You won against " + dresseur2.name + " and gained " + str(dresseur2.money))
+            time.sleep(1.0)
         
+        if self.player.defeated and self.action_type != Action.Null:
+            self.Run("You lost against " + dresseur2.name)
+            Renderer.Draw(self.player.taverne())
+            time.sleep(1.0)
+    
+    def Challenge_Trainer(self, trainer_name, pokemon_number):
+        dresseur2 = Dresseur(trainer_name)
+        for i in range(0,pokemon_number):
+            dresseur2.add_pokemon(self.AddRandomPokemons())
+        dresseur2.money = random.randint(50, 250)
+        dresseur2.taverne()
+
+        if(trainer_name == TrainerName.Bob.value):
+            result = random.randint(0,2)
+            if(result == 0):
+                for i in range(pokemon_number):
+                    dresseur2.pokemons[i].name = TrainerName.Bob.value
+
+        text_to_print = "\nYou challenged " + dresseur2.name + "\n"
+        Renderer.Draw(text_to_print)
+        time.sleep(1.0)
+
+        text_to_print = "\n" + dresseur2.name + " chose " + dresseur2.pokemons[0].name + "\n"
+        Renderer.Draw(text_to_print)
+        time.sleep(1.0)
+
         pokemon_index = 0
         for pokemon in self.player.pokemons:
             if(pokemon.life_points <= 0):
@@ -152,16 +207,25 @@ class Game:
                 break
 
         self.red_pokemon = self.player.pokemons[pokemon_index]
+
+        text_to_print = self.red_pokemon.name + " GO !\n"
+        Renderer.Draw(text_to_print)
+        time.sleep(1.0)
+        
         self.blue_pokemon = dresseur2.pokemons[0]
 
-        while self.red_pokemon.dead == False and self.blue_pokemon.dead == False and self.action_type == Action.Wild:
-            self.CombatPhase()
+        while self.player.defeated == False and dresseur2.defeated == False and self.action_type == Action.Trainer:
+            self.CombatPhase(dresseur2)
 
-        if self.blue_pokemon.life_points <= 0 and self.action_type == Action.Wild:
+        if(dresseur2.defeated and self.action_type != Action.Null):
             self.player.money += dresseur2.money
-            self.red_pokemon.level_up(self.blue_pokemon.level + 5)
-            self.player.Update()
-            self.Run("You won against " + dresseur2.name)
+            self.Run("You won against " + dresseur2.name + " and gained " + str(dresseur2.money))
+            time.sleep(1.0)
+        
+        if self.player.defeated and self.action_type != Action.Null:
+            self.Run("You lost against " + dresseur2.name)
+            Renderer.Draw(self.player.taverne())
+            time.sleep(1.0)
     
     def DrawAttackMoves(self, red_pokemon):
         text_to_print = "Attack\n\n"
@@ -178,7 +242,7 @@ class Game:
         text_to_print += ObjectMenu.Pokeballs.value + str(self.player.pokeball) + "\n"
         return text_to_print
     
-    def CombatPhase(self):
+    def CombatPhase(self, dresseur2):
         text_to_print = "\n" + self.blue_pokemon.name + " = " + str(self.blue_pokemon.life_points) + " hp\n\n"
         text_to_print += self.red_pokemon.name + " = " + str(self.red_pokemon.life_points) + " hp\n"
             
@@ -189,7 +253,7 @@ class Game:
         text_to_print += "4) Run\n"
 
         text_to_print += "\nenter the number for your move\n"
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         move = Check_String_Input(input(""), 4)
 
         if(move == 1):
@@ -201,31 +265,49 @@ class Game:
             if(transition_pokemon.type != Type.Null):
                 self.red_pokemon = transition_pokemon
         elif(move == 4):
-            result = random.randint(0,100)
-            if(result < 75):
-                self.Run("\nYou escaped\n")
+            if(self.action_type == Action.Wild):    
+                result = random.randint(0,100)
+                if(result < 75):
+                    self.Run("\nYou escaped\n")
+                else:
+                    self.enemy_turn = True
             else:
-                self.enemy_turn = True
+                Renderer.Draw(Error.TryToEscapeTrainer.value)
+                time.sleep(2.0)
+                return
+        else:
+            return
 
         if(self.action_type != Action.Null and self.enemy_turn):
             attackText = self.blue_pokemon.attack(random.choice(self.blue_pokemon.attacks), self.red_pokemon)
-            self.renderer.Draw(attackText)
+            Renderer.Draw(attackText)
             self.enemy_turn = False
+        
+        if self.blue_pokemon.life_points <= 0:
+            self.red_pokemon.level_up(self.blue_pokemon.level + 5)
+            dresseur2.Update()
+            if(not dresseur2.defeated):
+                self.blue_pokemon = dresseur2.AutoSelectAlivePokemon()
+
+        elif self.red_pokemon.life_points <= 0:
+            self.player.Update()
+            if(not self.player.defeated):
+                self.red_pokemon = self.PokemonMenu()
     
     def AttackMenu(self):
-        self.renderer.Draw(OverallMenu.MenuQuit.value)
-        self.renderer.Draw(self.DrawAttackMoves(self.red_pokemon))
+        Renderer.Draw(OverallMenu.MenuQuit.value)
+        Renderer.Draw(self.DrawAttackMoves(self.red_pokemon))
         attack_selected = input("Attack to use : ")
         attack_selected = Check_String_Input(attack_selected, 4)
         if(attack_selected > 0):
             attackText = self.red_pokemon.attack(self.red_pokemon.attacks[attack_selected-1],self.blue_pokemon)
-            self.renderer.Draw(attackText)
+            Renderer.Draw(attackText)
             self.enemy_turn = True
 
     def ObjectMenu(self):
         object_to_use = "\n"
         object_to_use = self.DrawObjectsInPocket()
-        self.renderer.Draw(object_to_use + "\n")
+        Renderer.Draw(object_to_use + "\n")
         object_to_use = input("")
         object_to_use = Check_String_Input(object_to_use, 2)
         if(object_to_use == 1):
@@ -235,7 +317,7 @@ class Game:
                     pokemon_to_heal.heal(potion_value)
                     self.enemy_turn = True
             else:
-                self.renderer.Draw(Error.NoPotion.value)
+                Renderer.Draw(Error.NoPotion.value)
                 self.ObjectMenu()
         if(object_to_use == 2):
             result = self.LaunchPokeball()
@@ -252,39 +334,51 @@ class Game:
             text_to_print += "\n" + str(i) + ") " + pokemon.name + "\t hp : " + str(pokemon.life_points) + "\t type : " + str(pokemon.type)
             i += 1
         text_to_print += "\n"
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         action = Check_String_Input(input(""), len(self.player.pokemons))
         if(action == 0):
-            return Pokemon("None", 0, Type.Null)
+            if(self.red_pokemon.life_points <= 0):
+                Renderer.Draw(Error.SelectedPokemonDead.value)
+                return self.PokemonMenu()
+            else:
+                return Pokemon("None", 0, Type.Null)
         else:
             if(action > len(self.player.pokemons)):
-                self.renderer.Draw(Error.NotEnoughtPokemon.value)
-                self.PokemonMenu()
+                Renderer.Draw(Error.NotEnoughtPokemon.value)
+                return self.PokemonMenu()
             elif(self.red_pokemon != self.player.pokemons[action-1]):
+                if(self.player.pokemons[action-1].life_points <= 0):
+                    Renderer.Draw(Error.SelectedPokemonDead.value)
+                    self.enemy_turn = True
+                    return self.PokemonMenu()
+                    
                 self.enemy_turn = True
                 return self.player.pokemons[action-1]
             else:
-                self.renderer.Draw(Error.AlreadyUsePokemon.value)
+                if(self.player.pokemons[action-1].life_points <= 0):
+                    Renderer.Draw(Error.SelectedPokemonDead.value)
+                    self.enemy_turn = True
+                    return self.PokemonMenu()
+                
+                Renderer.Draw(Error.AlreadyUsePokemon.value)
                 return self.red_pokemon
 
-        pokemon_to_select = ""
-
     def LaunchPokeball(self):
-        text_to_print = "\n"
+        text_to_print = ""
         if(self.action_type == Action.Wild):
+            self.player.pokeball -= 1
             catch = self.TryToCatch(75, "viewp")
             time.sleep(1.0)
             if(catch):
-                catch = self.TryToCatch(65, "viewp")
+                catch = self.TryToCatch(70, "viewp")
                 time.sleep(1.0)
                 if(catch):
-                    catch = self.TryToCatch(50, "tic")
+                    catch = self.TryToCatch(60, "tic")
                     time.sleep(1.0)
                     if(catch):
                         self.player.add_pokemon(self.blue_pokemon)
                         text_to_print += PokemonInPokeballFeedback.GotIt.value
-                        self.renderer.Draw(text_to_print)
-                        self.player.pokeball -= 1
+                        Renderer.Draw(text_to_print)
                         return True
                     else:
                         text_to_print += PokemonInPokeballFeedback.Try3.value
@@ -296,12 +390,12 @@ class Game:
         elif(self.action_type == Action.Trainer):
             text_to_print += Error.PokeballOnTrainer.value
 
-        self.renderer.Draw(text_to_print)
+        Renderer.Draw(text_to_print)
         time.sleep(2.0)
         return False
 
     def Run(self, message):
-        self.renderer.Draw(message)
+        Renderer.Draw(message)
         time.sleep(1.0)
 
         self.red_pokemon = Pokemon("None", 0, Type.Null)
@@ -312,30 +406,7 @@ class Game:
     def TryToCatch(self, proba, message):
         catch = random.randrange(0,100)
         if(catch < proba):
-            self.renderer.Draw("\n" + message + "\n")
+            Renderer.Draw("\n" + message + "\n")
             return True
         else:
             return False
-        
-    
-    
-    '''def Defi_Deterministe(self, dresseur2):
-
-        red_pokemon = self.HigherLifePokemon()
-        blue_pokemon = dresseur2.HigherLifePokemon()
-
-        while red_pokemon.dead == False and blue_pokemon.dead == False:
-            if random.randint(0,1) == 0:
-                red_pokemon.attack(blue_pokemon)
-                blue_pokemon.attack(red_pokemon)
-            else:
-                blue_pokemon.attack(red_pokemon)
-                red_pokemon.attack(blue_pokemon)
-    
-        if red_pokemon.life_points <= 0:
-            dresseur2.experience += 1
-            blue_pokemon.level_up(5)
-        
-        elif blue_pokemon.life_points <= 0:
-            self.experience += 1
-            red_pokemon.level_up(5)'''

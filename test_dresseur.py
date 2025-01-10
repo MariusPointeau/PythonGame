@@ -121,6 +121,8 @@ game = Game(pokemons, map)
 
 game.SpawmColletible()
 
+game.SpawnTrainer(2)
+
 while not game.close:
     game.Update()
 

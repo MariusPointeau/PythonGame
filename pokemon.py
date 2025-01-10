@@ -14,6 +14,45 @@ class Type(Enum):
     Buff = "10"
     Null = "11"
 
+    @classmethod
+    def Adventage(cls, type1, type2) -> float:
+        if(type1 == Type.Fire and type2 == Type.Grass):
+            return 1.5
+        elif(type1 == Type.Water and (type2 == Type.Fire or type2 == Type.Rock)):
+            return 1.5
+        elif(type1 == Type.Grass and type2 == Type.Water):
+            return 1.5
+        elif(type1 == Type.Flying and type2 == Type.Grass):
+            return 1.5
+        elif(type1 == Type.Dragon and type2 == Type.Normal):
+            return 1.5
+        elif(type1 == Type.Psy and type2 == Type.Dragon):
+            return 1.5
+        elif(type1 == Type.Electric and (type2 == Type.Water or type2 == Type.Flying)):
+            return 1.5
+        elif(type1 == Type.Rock and (type2 == Type.Psy or type2 == Type.Electric)):
+            return 1.5
+        
+        if(type1 == Type.Fire and type2 == Type.Water):
+            return 0.5
+        elif(type1 == Type.Water and (type2 == Type.Grass or type2 == Type.Electric)):
+            return 0.5
+        elif(type1 == Type.Grass and (type2 == Type.Fire or type2 == Type.Flying)):
+            return 0.5
+        elif(type1 == Type.Flying and type2 == Type.Electric):
+            return 0.5
+        elif(type1 == Type.Dragon and type2 == Type.Psy):
+            return 0.5
+        elif(type1 == Type.Psy and type2 == Type.Rock):
+            return 0.5
+        elif(type1 == Type.Electric and type2 == Type.Rock):
+            return 0.5
+        elif(type1 == Type.Rock and type2 == Type.Water):
+            return 0.5
+        elif(type1 == Type.Normal and type2 == Type.Dragon):
+            return 0.5
+        return 1
+
 class Attack:
 
     def __init__(self, __name,__damages, __usage_limit, __type, __protect = False):
@@ -70,6 +109,7 @@ class Pokemon:
                 pokemon2.life_points -= attack.damages
                 self.life_points -= attack.damages
                 attack_message += self.name + " used struggle and dealt " + str(attack.damages)
+                attack_message += pokemon2.checkHP()
                 attack_message += self.checkHP()
             else:
                 if attack.damages > 0:
@@ -77,8 +117,8 @@ class Pokemon:
                         attack_message += pokemon2.name + " was protected"
                         pokemon2.protected = False
                     else:
-                        pokemon2.life_points -= attack.damages
-                        attack_message += self.name + " used " + attack.name + " and dealt " + str(attack.damages)
+                        pokemon2.life_points -= int(attack.damages * Type.Adventage(attack.type, pokemon2.type))
+                        attack_message += self.name + " used " + attack.name + " and dealt " + str(int(attack.damages * Type.Adventage(attack.type, pokemon2.type)))
                         attack_message += pokemon2.checkHP()
                 else:
                     self.protected = True
@@ -94,12 +134,13 @@ class Pokemon:
             self.life_points += self.level
             self.maxlife_points += self.level
 
-            return self.name + " leveled up\n" + "\n he's now level " + self.level
+            return self.name + " leveled up\n" + "\n he's now level " + str(self.level)
         return ""
     
     def checkHP(self):
         if self.life_points <= 0:
             self.dead = True
+            self.life_points = 0
             return "\n\n" + self.name + " is defeated"
         else:
             return ""

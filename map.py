@@ -7,6 +7,7 @@ class Tile:
         self.occupied = False
         self.player = False
         self.potion = False
+        self.trainer = False
     
     def tileForm(self):
         if(self.occupied):
@@ -14,6 +15,8 @@ class Tile:
                 return "|^_^|"
             elif(self.potion):
                 return "| * |"
+            elif(self.trainer):
+                return "|^∇^|"
         return "|   |"
 
 class Map:
@@ -36,4 +39,8 @@ class Map:
         return textToPrint
 
     def GetRandomTile(self):
-        return random.choice(self.tiles[1:])
+        tile = random.choice(self.tiles[1:])
+        if(tile.occupied):
+            while tile.occupied:
+                tile = random.choice(self.tiles[1:])
+        return tile
